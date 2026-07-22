@@ -1,7 +1,15 @@
-﻿namespace WiredBrainApi.Services
+﻿using Microsoft.ApplicationInsights;
+
+namespace WiredBrainApi.Services
 {
     public class InventoryService : IInventoryService
     {
+        private readonly TelemetryClient _telemetry;
+        public InventoryService(TelemetryClient telemetry)
+        {
+            _telemetry = telemetry;
+        }
+
         private List<LocationInventory> _inventoryDb = new List<LocationInventory>()
         {
             new LocationInventory
@@ -45,11 +53,27 @@
             }
 
         };
-        public InventoryService() { }
 
         public LocationInventory? GetLocationInventory(int locationId)
         {
-            return _inventoryDb.FirstOrDefault(i => i.Id == locationId);
+            _telemetry.TrackEvent($"GetLocationInventory - LocationId: {locationId}");
+
+            LocationInventory? result = null;
+            try
+            {
+                result = _inventoryDb.FirstOrDefault(i => i.Id == locationId);
+                if (result == null)
+                {
+                    throw new KeyNotFoundException($"Inventory Location {locationId} Not Found");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                _telemetry.TrackException(ex);
+            }
+
+            return result;
+
         }
     }
 }

@@ -2,6 +2,11 @@ using WiredBrainApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplicationInsightsTelemetry(options =>
+{
+    options.ConnectionString =
+        builder.Configuration["ApplicationInsights:ConnectionString"];
+});
 // Add services to the container.
 
 builder.Services.AddControllers();
